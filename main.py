@@ -63,8 +63,8 @@ ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("my-theme.json")
 
 
-default_templates = ["--- Välj mall ---", "Endast transkribering", "--- --- --- ---", "Översätt till engelska", 
-		     "--- --- --- ---", "Learning Lab", "Projektbeskrivning",]
+default_templates = ["--- Choose template ---", "Transcription only", "--- --- --- ---", "Translate to English", 
+		     "--- --- --- ---", "Learning Lab", "Project description",]
 
 
 # Loading templates from json
@@ -76,7 +76,7 @@ try:
 	with open('templates.json', 'r') as f:
 		templates = json.load(f)
 except FileNotFoundError:
-	print("Heepåre")
+	print("Hello")
 	templates = {
 		default_templates
 	}
@@ -132,7 +132,7 @@ def record(app_instance, icon_rec, icon_stop_rec):
                         frames_per_buffer=CHUNK)
 		recording = True
 		
-		app_instance.button_record.configure(text="Stoppa inspelning", image=icon_stop_rec)
+		app_instance.button_record.configure(text="Stop recording", image=icon_stop_rec)
 		transcribed_audio_exists = False
 
 		app_instance.textbox.delete(1.0, 'end')
@@ -164,14 +164,14 @@ def record(app_instance, icon_rec, icon_stop_rec):
 		mp3_filename = f"audio/audio_{now}.mp3"
 		convert_to_mono_and_compress_to_mp3(filename, mp3_filename)
 
-		app_instance.button_record.configure(text="Spela in igen", image=icon_rec)
+		app_instance.button_record.configure(text="Record again", image=icon_rec)
 		
 		# Disable the record button for 2 seconds to prevent accidental double-click
 		app_instance.button_record.configure(state="disabled")
 		app_instance.after(3000, lambda: app_instance.button_record.configure(state="normal"))
 
-		app_instance.textbox.insert('end', "\n2. Inspelning stoppad.\nLjudfilen " + str(now) 
-			+ ".wav\när sparad.\n")
+		app_instance.textbox.insert('end', "\n2. Recording stopped.\nAudio file " + str(now) 
+			+ ".wav\nis saved.\n")
 		app_instance.textbox.see('end')
 
 		recorded_audio_exists = True
@@ -203,7 +203,7 @@ def choose_file(app_instance):
 	global mp3_filename
 	global transcribed_audio_exists
 
-	app_instance.textbox.insert('end', "\n1. Välj fil.\n")
+	app_instance.textbox.insert('end', "\n1. Choose file.\n")
 	app_instance.textbox.see('end')
 
 	# Open the file dialog and get the path of the selected file
@@ -226,7 +226,7 @@ def choose_file(app_instance):
 	mp3_filename = f"audio/audio_{now}.mp3"
 	convert_to_mono_and_compress_to_mp3(dest_path, mp3_filename)
 
-	app_instance.textbox.insert('end', "\n2. Din fil är klar.\n")
+	app_instance.textbox.insert('end', "\n2. Your file is ready.\n")
 	app_instance.textbox.see('end')
 
 	recorded_audio_exists = True
@@ -253,10 +253,10 @@ def send_to_whisper(app_instance, user_choice):
 
 	user_made_choice = user_choice
 	
-	print("\nSKICKAR TILL WHISPER FÖR TRANSKRIBERING")
+	print("\nSENDING TO WHISPER FOR TRANSCRIPTION")
 	print(user_choice)
 
-	app_instance.textbox.insert('end', "\n4. Skickar inspelning till transkribering. Det kan ta allt från några sekunder till flera minuter beroende på hur lång inspelningen är.\n")
+	app_instance.textbox.insert('end', "\n4. Sending recording for transcription. It can take anywhere from a few seconds to several minutes depending on the length of the recording.\n")
 	app_instance.textbox.see('end')
 	
 	if c.WHISPER_VERSION == "OpenAI":
@@ -285,7 +285,7 @@ def send_to_whisper(app_instance, user_choice):
 
 	gpt_response = transcribed
 
-	app_instance.textbox.insert('end', "\n___ Transkribering ___ \n\n" + transcribed + "\n")
+	app_instance.textbox.insert('end', "\n___ Transcribing ___ \n\n" + transcribed + "\n")
 	app_instance.textbox.see('end')
 
 	transcribed_audio_exists = True
@@ -304,7 +304,7 @@ def translate_with_whisper(app_instance, user_choice):
 
 	user_made_choice = user_choice
     
-	print("\nSKICKAR TILL WHISPER FÖR ÖVERSÄTTNING")
+	print("\nSENDING TO WHISPER FOR TRANSLATION")
 	print(user_choice)
 
 	# Read the audio file
@@ -326,7 +326,7 @@ def translate_with_whisper(app_instance, user_choice):
 
 	gpt_response = transcribed
 
-	app_instance.textbox.insert('end', "\n___ Översättning ___ \n\n" + transcribed + "\n")
+	app_instance.textbox.insert('end', "\n___ Translation ___ \n\n" + transcribed + "\n")
 	app_instance.textbox.see('end')
 
 
@@ -369,7 +369,7 @@ def send_to_gpt(prompt_primer, gpt_model, app_instance, choice):
 
 	elif tokens_total > 16000 and c.LLM == "OpenAI":
 		print("Error. More than 16K tokens.\n")
-		app_instance.textbox.insert('end', "\nTexten är för lång för att bearbetas. GPT klarar av 16000 tokens och din text var " + str(tokens_total) + " lång.\n\n")
+		app_instance.textbox.insert('end', "\nThe text is too long to process. GPT can handle 16000 tokens and your text was" + str(tokens_total) + "long.\n\n")
 		app_instance.textbox.see('end')
 
 	elif tokens_total < 32000 and c.LLM == "Azure":
@@ -379,13 +379,13 @@ def send_to_gpt(prompt_primer, gpt_model, app_instance, choice):
 	else:
 		print("Sending Error. More than 32K tokens.\n")
 
-	app_instance.textbox.insert('end', "\n5. Skickar transkribering till " + c.LLM + "...\n")
+	app_instance.textbox.insert('end', "\n5. Sending transcription to" + c.LLM + "...\n")
 	app_instance.textbox.see('end')
 
 	messages.append({"role": "user", "content": prompt_primer + "\n" + transcribed})
 	message_llama = prompt_primer + "\n" + transcribed
 
-	app_instance.textbox.insert('end', "\n___ Bearbetad text ___ \n\n")
+	app_instance.textbox.insert('end', "\n___ Processed text ___ \n\n")
 	app_instance.textbox.see('end')
 
 	if c.LLM == "Azure":
@@ -474,7 +474,7 @@ def write_to_file():
 	f.write(str(gpt_response))
 	f.close()
 
-	print("\nSPARAT SOM TEXT")
+	print("\nSAVE AS TEXT")
 
 	if c.NOTES_APP == "obsidian":
 		f = open(c.OBSIDIAN_FILE_PATH + user_made_choice.capitalize() + " " + now + str(number) + ".md", "w")
@@ -489,7 +489,7 @@ def write_to_file():
 
 		f.close()
 
-		print("SPARAT I OBSIDIAN")
+		print("SAVE IN OBSIDIAN")
 
 	number += 1
 
@@ -497,7 +497,7 @@ def write_to_file():
 
 def write_promtp_dall_e(chat_response):
 
-	print("\nSKRIVER EN PROMPT TILL DALL-E FÖR ATT SKAPA EN BILD")
+	print("\nWRITING A PROMPT FOR DALL-E TO CREATE AN IMAGE")
 
 	global dall_e_response
 
@@ -523,7 +523,7 @@ def write_promtp_dall_e(chat_response):
 
 def send_to_dall_e(dall_e_response):
 
-	print("\nSKAPAR EN BILD MED DALL-E")
+	print("\nCREATING AN IMAGE WITH DALL-E")
 	
 	global dall_e_img_url
 
@@ -579,11 +579,11 @@ class App(ctk.CTk):
 		self.textbox.grid(row=1, column=0, columnspan=3, padx=20, pady=(20, 0), sticky="nsew")
 
 		self.button_record = ctk.CTkButton(master=self, image=icon_rec, height=70, 
-			command=lambda: record(self, icon_rec, icon_stop_rec), text="Spela in")
+			command=lambda: record(self, icon_rec, icon_stop_rec), text="Record")
 		self.button_record.grid(row=2, column=0, columnspan=2, padx=(20, 10), pady=20, sticky="ew")
 		self.button_record.configure(fg_color="#eb4e3d", hover_color="#a3392e")
 
-		self.button_upload = ctk.CTkButton(master=self, image=icon_upload, height=70, command=lambda: choose_file(self), text="Välj fil")
+		self.button_upload = ctk.CTkButton(master=self, image=icon_upload, height=70, command=lambda: choose_file(self), text="Choose file")
 		self.button_upload.grid(row=2, column=2, columnspan=1, padx=(10, 20), pady=20, sticky="ew")
 		self.button_upload.configure(fg_color="#2b6494", hover_color="#1e476a")
 
@@ -591,15 +591,15 @@ class App(ctk.CTk):
 			values= default_templates + list(templates.keys()))
 		self.combobox.grid(row=3, column=0, columnspan=1, padx=(20, 10), pady=0, sticky="ew")
 
-		self.button_new_template = ctk.CTkButton(master=self, image=icon_plus, height=46, command=lambda: self.create_new_template(self), text="Skapa mall")
+		self.button_new_template = ctk.CTkButton(master=self, image=icon_plus, height=46, command=lambda: self.create_new_template(self), text="Create template")
 		self.button_new_template.grid(row=3, column=1, columnspan=1, padx=(10, 10), pady=0, sticky="ew")
 		self.button_new_template.configure(fg_color="gray20", hover_color="gray15")
 
-		self.button_send = ctk.CTkButton(master=self, height=46, command=self.button_callback, text="Bearbeta text")
+		self.button_send = ctk.CTkButton(master=self, height=46, command=self.button_callback, text="Process Text")
 		self.button_send.grid(row=3, column=2, columnspan=1, padx=(10, 20), pady=0, sticky="ew")
 		self.button_send.configure(fg_color="gray20", hover_color="gray15", state="disabled")
 
-		self.button_save = ctk.CTkButton(master=self, height=46, command=write_to_file, text="Spara")
+		self.button_save = ctk.CTkButton(master=self, height=46, command=write_to_file, text="Save")
 		self.button_save.grid(row=4, column=0, columnspan=1, padx=(20, 10), pady=20, sticky="ew")
 		self.button_save.configure(fg_color="#65c366", hover_color="#478d48", state="disabled")
 
@@ -646,10 +646,10 @@ class App(ctk.CTk):
 		else:
 			default_font = ('Arial', 16)
 			window.geometry('640x660')  # Set the size of the window
-		window.title('Skapa ny mall')  # Set the title of the window
+		window.title('Create a new template.')  # Set the title of the window
 		window.configure(bg="#333333")
 
-		label = tk.Label(window, text="Välj en mall att redigera", bg="#333333", fg="#ffffff", font=default_font)
+		label = tk.Label(window, text="Choose a template to edit.", bg="#333333", fg="#ffffff", font=default_font)
 		label.pack(pady=(30, 10))
 
 		# Create a custom style for the combobox
@@ -661,7 +661,7 @@ class App(ctk.CTk):
 		template_combobox = ttk.Combobox(master=window, values=list(templates.keys()), style='Custom.TCombobox')
 		template_combobox.pack(pady=(0, 20))
 
-		tk.Label(window, text='Namn på mallen', bg="#333333", fg="#ffffff", font=default_font).pack(pady=(0, 10))  # Add a label for the name entry
+		tk.Label(window, text='Name of the template', bg="#333333", fg="#ffffff", font=default_font).pack(pady=(0, 10))  # Add a label for the name entry
 		name_entry = tk.Entry(window, bg="#666666", fg="#ffffff", highlightthickness=0, relief="flat", font=default_font)
 		name_entry.pack(pady=(0, 20))
 
@@ -714,7 +714,7 @@ class App(ctk.CTk):
 			# Update the combobox in the main app
 			app_instance.update_combobox()
 
-		save_button = tk.Button(window, text="Spara", command=save_template, font=default_font)
+		save_button = tk.Button(window, text="Save", command=save_template, font=default_font)
 		save_button.pack(pady=10)
 
 		def delete_template():
@@ -738,7 +738,7 @@ class App(ctk.CTk):
 			# Update the combobox in the main app
 			app_instance.update_combobox()
 
-		delete_button = tk.Button(window, text="Radera", command=delete_template, font=default_font)
+		delete_button = tk.Button(window, text="Delete", command=delete_template, font=default_font)
 		delete_button.pack()
 	
 
@@ -748,15 +748,15 @@ class App(ctk.CTk):
 		self.choice_made = self.combobox.get()
 		print("\n3. " + self.choice_made)
 
-		if self.choice_made == "--- Välj mall ---":
-			self.textbox.insert("insert", "\nDu måste välja en mall i rullgardinsmenyn.")
+		if self.choice_made == "--- Choose template ---":
+			self.textbox.insert("insert", "\nYou must select a template from the dropdown menu.")
 		
-		elif self.choice_made == "Endast transkribering":
+		elif self.choice_made == "Transcription only":
 
 			whisper_thread = threading.Thread(target=send_to_whisper, args=(self, self.choice_made,))
 			whisper_thread.start()
 
-		elif self.choice_made == "Översätt till engelska":
+		elif self.choice_made == "Translate to English":
 
 			whisper_thread = threading.Thread(target=translate_with_whisper, args=(self, self.choice_made,))
 			whisper_thread.start()
@@ -781,7 +781,7 @@ class App(ctk.CTk):
 			process_thread.start()
 
 
-		elif self.choice_made == "Projektbeskrivning":
+		elif self.choice_made == "Project Description":
 
 			def process_choice(app_instance):
 				global transcribed_audio_exists
@@ -819,5 +819,3 @@ class App(ctk.CTk):
 if __name__ == "__main__":
 	app = App()
 	app.mainloop()
-
-
